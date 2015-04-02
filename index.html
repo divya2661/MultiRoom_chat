@@ -1,0 +1,111 @@
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script>
+	var socket = io.connect('http://localhost:9000');
+
+	
+	socket.on('connect', function(){
+		socket.emit('adduser', prompt("What's your name?"));
+	});
+
+
+	socket.on('updatechat', function (username, data) {
+		$('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+	});
+
+
+	socket.on('updateusers', function(data) {
+
+        $('#users').empty();
+        $.each(data, function(key) {
+            
+            $('#users').append('<div><a href = "#" onclick="alertuser(\''+key+'\')">' + key + '</a></div>');
+        });
+    });
+
+	
+	socket.on('updaterooms', function(rooms, current_room) {
+		$('#rooms').empty();
+		$.each(rooms, function(key, value) {
+			if(value == current_room){
+				$('#rooms').append('<div>' + value + '</div>');
+			}
+			else {
+				$('#rooms').append('<div><a href="#" onclick="switchRoom(\''+value+'\')">' + value + '</a></div>');
+			}
+		});
+	});
+
+
+	function switchRoom(room){
+		socket.emit('switchRoom', room);
+	}
+
+	function alertuser(username){
+
+		console.log("hello..");
+
+
+	}
+
+
+	// on load of page
+	$(function(){
+		
+		$('#datasend').click( function() {
+			var message = $('#data').val();
+			$('#data').val('');
+			socket.emit('sendchat', message);
+		});
+
+		$('#data').keypress(function(e) {
+			if(e.which == 13) {
+				$(this).blur();
+				$('#datasend').focus().click();
+			}
+		});
+
+		// $('#roombutton').click(function(){
+			
+  //       	var name = $('#roomname').val();
+  //       	var runame = $('#roomusername').val(); 
+  //       	console.log("name is: " + name);
+  //       	$('#roomname').val('');
+  //       	socket.emit('create', name,runame);
+  //   	});
+
+
+	});
+
+
+
+//----------------------------------html code...-------------------
+</script>
+<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+	<b>ROOMS</b>
+	<div id="rooms"></div>
+</div>
+
+<div style="border: 5px solid red;height:500px;width:200px;position:absolute;left:600px;top:20px" >participants
+            <div id = "users">
+
+            </div>
+ </div>
+
+
+<div style="border: 5px solid red;height:300px;width:400px;position:absolute;left:150px;top:20px">
+	<div id="conversation"></div>
+	
+</div>
+<div style = "position:absolute;left: 150px;top:350px">
+<input id="data" style="width:300px;" />
+	<input type="button" id="datasend" value="send" />
+
+</div>
+<div style = "position:absolute;left: 150px;top:400px">
+	
+	<input id="roomname" style="width:150px;" />
+	<input id="roomusername" style="width:150px;" />
+	<input type="button" id="roombutton" value="Create room" />
+</div>
+
