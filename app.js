@@ -1,5 +1,6 @@
 
 var express = require('express');
+var Room = require('./room.js')
 var app = express();
 var port = 9000;
 var io = require('socket.io').listen(app.listen(port));
@@ -9,10 +10,12 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
 });
 
- var usernames = {};
-// var people = {};
+var usernames = {};
+//var people = {};
 //var socketlist = [];
-var rooms = ['room1','room2','room3'];
+var rooms = [];
+
+
 
 io.sockets.on('connection', function (socket) {
 
@@ -20,14 +23,17 @@ io.sockets.on('connection', function (socket) {
 	
 	socket.on('adduser', function(username){
 
+	//	people[socket.id] = {name: username};
 		socket.username = username;
-		socket.room = 'room1';
+		socket.room = username;
+		rooms.push(username);
 		usernames[username] = username;
-		socket.join('room1');
+		socket.join(username);
 		socket.emit('updatechat', 'SERVER', 'you have connected to room1');
 		socket.broadcast.to('room1').emit('updatechat', 'SERVER', username + ' has connected to this room');
 		io.sockets.emit('updateusers',usernames);
-		socket.emit('updaterooms', rooms, 'room1');
+		socket.emit('updaterooms', rooms, username);
+	
 	});
 
 	
@@ -35,6 +41,11 @@ io.sockets.on('connection', function (socket) {
 		io.sockets.in(socket.room).emit('updatechat', socket.username, data);
 	});
 
+
+	socket.on('private_chat',function(receiverName,msg){
+
+		io.sockets.in(receiverName).emit('new_msg',socket.username,msg);
+	})
 
 
 	socket.on('switchRoom', function(newroom){
@@ -47,21 +58,23 @@ io.sockets.on('connection', function (socket) {
 		socket.emit('updaterooms', rooms, newroom);
 	});
 
-	// socket.on('create',function(room,runame){
+	// socket.on('create',function(roomName){
 	// 	console.log("yes it is coming heree.");
-	// 	rooms.push(room);
-	// 	socket.emit('updaterooms',room,socket.room);
-		
-	// 	socket.leave(socket.room);
-	// 	socket.join(room);
+	// 	var id = uuid.v4();
+	// 	var room = new Room(runame,id,socket.id);
+	// 	rooms[id] = room;
 
+	// 	socket.room = roomName;
+	// 	socket.join = (soket.room);
+	// 	room.addPerson(socket.id);
 
+	//  });
 
-	// });
 
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){
-		
+
+		//delete people[socket.id];
 		delete usernames[socket.username];
 		io.sockets.emit('updateusers', usernames);
 		socket.broadcast.emit('updatechat', 'SERVER', socket.username + ' has disconnected');
