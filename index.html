@@ -6,6 +6,8 @@
 	
 	socket.on('connect', function(){
 		socket.emit('adduser', prompt("What's your name?"));
+
+
 	});
 
 
@@ -23,34 +25,48 @@
         });
     });
 
-	socket.on('new_msg',function (username,data){
+	socket.on('new_msg',function (username,data,receiverName){
+		console.log('its working...');
 
-		$('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+		document.getElementById('test').style.display = 'block';
+		$('#pri_name').val(username);
+		$('#test').append('<b>'+username + ':</b> ' + data + '<br>');
+		
 
 	});
 	
-	socket.on('updaterooms', function(rooms, current_room) {
+	socket.on('updaterooms', function(rooms) {
 		$('#rooms').empty();
 		$.each(rooms, function(key, value) {
-			if(value == current_room){
-				$('#rooms').append('<div>' + value + '</div>');
-			}
-			else {
+			
 				$('#rooms').append('<div><a href="#" onclick="switchRoom(\''+value+'\')">' + value + '</a></div>');
-			}
+			
 		});
 	});
 
+	// socket.on('updateNotification',function (username, newroom){
+
+	// 	$('#notification').append('<b>'+username + ' wish to connect to ' + newroom);
+
+	// });
+
 
 	function switchRoom(room){
+
+		
 		socket.emit('switchRoom', room);
 	}
 
+
 	function alertuser(username){
 
-		console.log("hello..");
+		document.getElementById('test').style.display = 'block';
+		$('#pri_name').val(username);
+	}
 
+	function closePopup() {
 
+    	document.getElementById('test').style.display = 'none';
 	}
 
 
@@ -70,13 +86,29 @@
 			}
 		});
 
-		$('#roombutton').click(function(){
+		$('#pri_send').click( function() {
+			var pri_msg = $('#msg').val();
+
+			$('#msg').val('');
+			var username = $('#pri_name').val();
+			//$('#test').append('<b>'+username + ':</b> ' + pri_msg + '<br>');
+			socket.emit('send_pri_msg',username, pri_msg);
+		});
+
+		$('#msg').keypress(function(e) {
+			if(e.which == 13) {
+				$(this).blur();
+				$('#pri_send').focus().click();
+			}
+		});
+
+		// $('#roombutton').click(function(){
 			
-        	var name = $('#roomname').val();
-        	var msg = $('#msg').val(); 
-        	$('#msg').val('');
-        	socket.emit('private_chat', name,msg);
-    	});
+  //       	var name = $('#roomname').val();
+  //       	var msg = $('#msg').val(); 
+  //       	$('#msg').val('');
+  //       	socket.emit('private_chat', name,msg);
+  //   	});
 
 
 	});
@@ -85,31 +117,95 @@
 
 //----------------------------------html code...-------------------
 </script>
-<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
-	<b>ROOMS</b>
-	<div id="rooms"></div>
-</div>
+<style type="text/css">
+.popup{
+    position:absolute;
+    top:100px;
+    left:1000px;
+    margin:100px auto;
+    width:250px;
+    height:300px;
+    font-family:verdana;
+    font-size:13px;
+    padding:10px;
+    background-color:rgb(240,240,240);
+    border:2px solid grey;
+    z-index:100000000000000000; 
+    display:none
+    }
+    
+.cancel{
+    position: relative;
+    left: 240;
+    top: -88;
+    background-color: red;
+    height:14px;
+    width:20px;
+    padding:0 0 5px 0;
+    border-radius:3px;
+    }
+.msg_box{
+	position: relative;
+	left: -11px;
+	top: 274px;
+	overflow: hidden;
+	border:2px solid grey;
 
-<div style="border: 5px solid red;height:500px;width:200px;position:absolute;left:600px;top:20px" >participants
+}
+
+.p_name{
+	position: relative;
+	left: -11px;
+	top: -47px;
+	width: 245px;
+}
+
+.pri_button{
+	position: relative;
+	left: 211;
+	top: 226;
+
+}
+
+
+.cancel:hover{
+    background:rgb(255,50,50);
+    }
+</style>
+
+<div style="border: 5px solid red;height:500px;width:100px;position:absolute;left:10px;top:20px;" >Rooms
+            <div id = "rooms">
+
+            </div>
+ </div>
+
+<div style="border: 5px solid red;height:500px;width:150px;position:absolute;left:600px;top:20px;" >participants
             <div id = "users">
 
             </div>
  </div>
 
 
-<div style="border: 5px solid red;height:300px;width:400px;position:absolute;left:150px;top:20px">
+<div style="border: 5px solid red;height:300px;width:400px;position:absolute;left:150px;top:20px;overflow-y: scroll;">
 	<div id="conversation"></div>
 	
 </div>
-<div style = "position:absolute;left: 150px;top:350px">
-<input id="data" style="width:300px;" />
-	<input type="button" id="datasend" value="send" />
 
-</div>
-<div style = "position:absolute;left: 150px;top:400px">
+<textarea rows= "2" cols="49" style = "position:absolute;left: 150px;top:330px" id="data" style="width:150px;"></textarea>
+
+<div style = "position:absolute;left: 150px;top:380px">
 	
-	<input id="roomname" style="width:150px;" />
-	<input id="msg" style="width:150px;" />
-	<input type="button" id="roombutton" value="Send private msg" />
+	<input type="button" id="datasend" value="Send" />
 </div>
+
+
+<div id="test" class="popup">
+	
+    <textarea rows="2" cols = "25" class = "msg_box"  id = "msg" type="text" name="write here"></textarea>
+    <input class = "p_name" id ="pri_name" type="text" name = "pri_name">
+    <input class = "pri_button" type="button" id="pri_send" value="Send" />
+    <div class="cancel" onclick="closePopup();"></div>
+</div>
+
+
 
