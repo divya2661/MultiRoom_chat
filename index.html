@@ -17,6 +17,10 @@
 		$('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
 	});
 
+	socket.on('show', function (username) {
+		$('#who').val(username);
+	});
+
 
 	socket.on('updateusers', function(data) {
 
@@ -108,7 +112,11 @@
 			var roomName = $('#roomName').val();
 			$('#roomName').val('');
 			//var username = $('#pri_name').val();
-			socket.emit('createRoom',roomName);
+			var name1 = $('#Name1').val();
+			$('#Name1').val('');
+			var name2 = $('#Name2').val();
+			$('#Name2').val('');
+			socket.emit('createRoom',roomName,name1,name2)	;
 			console.log("till here it is working.");
 		});
 
@@ -183,13 +191,13 @@
     }
 </style>
 
-<div style="border: 5px solid red;height:500px;width:100px;position:absolute;left:10px;top:20px;" >Rooms
+<div style="border: 5px solid green;height:500px;width:100px;position:absolute;left:10px;top:20px;" >Rooms
             <div id = "rooms">
 
             </div>
  </div>
 
-<div style="border: 5px solid red;height:500px;width:150px;position:absolute;left:600px;top:20px;" >participants
+<div style="border: 5px solid blue;height:500px;width:150px;position:absolute;left:600px;top:20px;" >participants
             <div id = "users">
 
             </div>
@@ -201,17 +209,19 @@
 	
 </div>
 
-<textarea rows= "2" cols="49" style = "position:absolute;left: 150px;top:330px" id="data" style="width:150px;"></textarea>
+<textarea rows= "2" cols="40" style = "position:absolute;left: 150px;top:335px;border: 5px solid yellow;" id="data"></textarea>
 
-<div style = "position:absolute;left: 150px;top:380px">
+<div style = "position:absolute;left: 500px;top:340px">
 	
 	<input type="button" id="datasend" value="Send" />
 </div>
 
-<div style = "position:absolute;left: 200px;top:450px">
+<div style = "position:absolute;left: 150px;top:400px">
 	
-	 <input id ="roomName" type="text" name = "Room Name">
-	 <input type="button" id="createRoom" value="Create" />
+	 <input style = "border: 5px solid yellow;width:300px" id ="roomName" type="text" name = "Room Name" value="Room Name">
+	 <input type="button" id="createRoom" value="Create" /> <br><br>
+	 <input style="border: 5px solid pink;width:300px" id ="Name1" type="text" name = "Room Name" value="Name1"><br><br>
+	 <input style="border: 5px solid pink;width:300px" id ="Name2" type="text" name = "Room Name" value="Name2">
 </div>
 
 
@@ -224,5 +234,5 @@
     <div class="cancel" onclick="closePopup();"></div>
 </div>
 
-
+<input style="font-size:50px;color: red;border: 5px solid black;height:100px;width:300px;position:absolute;left:900;top:60" id ="who" type="text" name = "Room Name" >
 

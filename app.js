@@ -1,6 +1,5 @@
 
 	var express = require('express');
-	var Room = require('./room.js')
 	var app = express();
 	var port = 9000;
 	var io = require('socket.io').listen(app.listen(port));
@@ -32,7 +31,9 @@ io.sockets.on('connection', function (socket) {
 			usernames[username] = username;
 			socket.join(username);
 			socket.emit('updatechat', 'SERVER', 'you are connected to room  ' + username);
-			socket.broadcast.to('room1').emit('updatechat', 'SERVER', username + ' has connected to this room');
+			socket.emit('show', socket.username);
+
+			//socket.broadcast.to('room1').emit('updatechat', 'SERVER', username + ' has connected to this room');
 			io.sockets.emit('updateusers',usernames);
 			//socket.emit('updaterooms', rooms, username);
 		
@@ -64,7 +65,7 @@ io.sockets.on('connection', function (socket) {
 
 			console.log('switiching room.');
 			//socket.emit('updateNotification',socket.username,newroom);
-			
+			socket.room = newroom;
 			if(socket.room !== socket.username){
 				socket.leave(socket.room);
 			}
@@ -79,30 +80,38 @@ io.sockets.on('connection', function (socket) {
 
 	//------------------------CRATING ROOM-----------------------
 
-		socket.on('createRoom',function(roomName){
+		socket.on('createRoom',function(roomName,name1,name2){
 
 			console.log('its also working..');
-			console.log('username: ' +  socket.username);
-			console.log('roomName: ' +  roomName);
+			console.log('username: ' +  name1);
+			console.log('Name: ' +  name2);
 			
 			if(roomName === socket.username)
 			{
-				console.log('going oto if..');
+				//console.log('going oto if..');
 				socket.emit('updatechat', 'SERVER', 'Please put a different room name from your username');
 			
 			}
 			else
 			{
-				socket.room = roomName;
-				crt_rooms[roomName] = roomName;
-				socket.broadcast.emit('updatechat', 'SERVER', socket.username + ' has created the room ' + roomName);
-				socket.emit('update_crtrooms',crt_rooms);
-				socket.broadcast.emit('update_crtrooms',crt_rooms);
-				var room = roomName
+				console.log('Socket room: ' + socket.room + ' username: ' + socket.username);
 				if(socket.room !== socket.username){
+					console.log('coming to if.')
 					socket.leave(socket.room);
 				}
+				socket.room = roomName;
+				crt_rooms[roomName] = roomName;
+				socket.broadcast.in(name1).emit('updatechat', 'SERVER', socket.username + ' has created the room ' + roomName + ' and invited you to join.');
+				socket.broadcast.in(name2).emit('updatechat', 'SERVER', socket.username + ' has created the room ' + roomName + ' and invited you to join.');
+				socket.emit('updatechat', 'SERVER', + ' You have created the room ' + roomName);
+				//socket.emit('update_crtrooms',crt_rooms);
+				socket.broadcast.in(name1).emit('update_crtrooms',crt_rooms);
+				socket.broadcast.in(name2).emit('update_crtrooms',crt_rooms);
+				socket.broadcast.in(socket.usernames).emit('update_crtrooms',crt_rooms);
+				var room = roomName
+				
 				socket.join(roomName);
+				console.log('Socket room: ' + socket.room + ' username ' + socket.username);
 
 			 }
 			
